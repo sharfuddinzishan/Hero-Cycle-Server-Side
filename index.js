@@ -39,6 +39,7 @@ const herocycle = async () => {
         await client.connect();
         const usersCollection = client.db('herocycle').collection('users');
         const cyclesCollection = client.db('herocycle').collection('cycles');
+        const ordersCollection = client.db('herocycle').collection('orders');
 
         // Check Server is Ok or Not
         app.get('/', (req, res) => {
@@ -170,10 +171,112 @@ const herocycle = async () => {
         // Get Single Cycle by CycleID
         app.get('/cycles/:cycleID', async (req, res) => {
             const getCycleID = req.params.cycleID
-            const query = { _id: ObjectId(getCycleID) }
-            const cycle = await cyclesCollection.findOne(query);
-            res.send(cycle);
+            if (getCycleID === 'undefined') {
+                res.send({ status: 401 })
+            }
+            else {
+                const query = { _id: ObjectId(getCycleID) }
+                const cycle = await cyclesCollection.findOne(query);
+                res.send(cycle);
+            }
         })
+
+        // Add New Order 
+        app.post('/order', verifyToken, async (req, res) => {
+            const getOrder = req.body
+            console.log('hello ', req.body)
+            const getDecodeEmail = req.decodedUserMail;
+            if (getDecodeEmail) {
+                const findUser = { email: getDecodeEmail }
+                const getUser = await usersCollection.findOne(findUser);
+                if (getUser.role) {
+                    const result = await ordersCollection.insertOne(getOrder);
+                    res.send(result);
+                }
+                else {
+                    res.send({ status: 401 })
+                }
+            }
+            else {
+                res.send({ status: 401 })
+            }
+        })
+
+        // Get All Orders By Email
+        app.get('/user/orders', async (req, res) => {
+            const email = req.query.email
+            const query = { email }
+            const user = await usersCollection.findOne(query);
+            if (user?.role) {
+                const result = await ordersCollection.find(query).toArray();
+                res.send(result)
+            }
+            else {
+                res.send({ status: 401 })
+            }
+        })
+
+        // Get Single Order by OrderID
+        app.get('/orders/:orderID', async (req, res) => {
+            const getOrderID = req.params.orderID
+            const query = { _id: ObjectId(getOrderID) }
+            const order = await ordersCollection.findOne(query);
+            res.send(order);
+        })
+
+        // Update Single Order 
+        app.put('/order', verifyToken, async (req, res) => {
+            const getSingleOrder = req.body
+            console.log(getSingleOrder)
+            const filter = { _id: ObjectId(getSingleOrder._id) }
+            const updateDoc = {
+                $set: {
+                    orderBy: getSingleOrder.orderBy,
+                    shippingAddress: getSingleOrder.shippingAddress,
+                    orderNotes: getSingleOrder.orderNotes,
+                    email: getSingleOrder.email,
+                    price: getSingleOrder.price,
+                    model: getSingleOrder.model,
+                    cycleID: getSingleOrder.cycleID,
+                    orderStatus: getSingleOrder.orderStatus,
+                }
+            }
+            const result = await ordersCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+        // // Update Single Order 
+        // app.put('/order', verifyToken, async (req, res) => {
+        //     const getSingleOrder = req.body
+        //     console.log(getSingleOrder.orderStatus)
+        //     const getDecodeEmail = req.decodedUserMail;
+        //     if (getDecodeEmail) {
+        //         const findUser = { email: getDecodeEmail }
+        //         const getUser = await usersCollection.findOne(findUser);
+        //         if (getUser?.role) {
+        //             const filter = { _id: ObjectId(getSingleOrder._id), email: getDecodeEmail }
+        //             const updateDoc = {
+        //                 $set: {
+        //                     orderBy: getSingleOrder.orderBy,
+        //                     shippingAddress: getSingleOrder.shippingAddress,
+        //                     orderNotes: getSingleOrder.orderNotes,
+        //                     email: getSingleOrder.email,
+        //                     price: getSingleOrder.price,
+        //                     model: getSingleOrder.model,
+        //                     cycleID: getSingleOrder.cycleID,
+        //                     orderStatus: getSingleOrder.orderStatus,
+        //                 }
+        //             }
+        //             const result = await ordersCollection.updateOne(filter, updateDoc)
+        //             res.send(result)
+        //         }
+        //         else {
+        //             res.send({ status: 401 })
+        //         }
+        //     }
+        //     else {
+        //         res.send({ status: 401 })
+        //     }
+        // })
 
     }
 
