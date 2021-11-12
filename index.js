@@ -71,87 +71,87 @@ const herocycle = async () => {
             res.send(isAdmin);
         })
 
-        //Make Admin
-        app.put('/user/admin', verifyToken, async (req, res) => {
-            const user = req.body
-            const getDecodeEmail = req.decodedUserMail;
-            if (getDecodeEmail) {
-                const findUser = { email: getDecodeEmail }
-                const getUser = await usersCollection.findOne(findUser);
-                if (getUser?.role === 'admin') {
-                    const filter = { email: user.email }
-                    const updateDoc = {
-                        $set: {
-                            role: 'admin'
-                        }
-                    }
-                    const result = await usersCollection.updateOne(filter, updateDoc)
-                    res.send(result)
-                }
-                else {
-                    res.send({ status: 401 })
-                }
-            }
-            else {
-                res.send({ status: 401 })
-            }
-        })
+        // //Make Admin
+        // app.put('/user/admin', verifyToken, async (req, res) => {
+        //     const user = req.body
+        //     const getDecodeEmail = req.decodedUserMail;
+        //     if (getDecodeEmail) {
+        //         const findUser = { email: getDecodeEmail }
+        //         const getUser = await usersCollection.findOne(findUser);
+        //         if (getUser?.role === 'admin') {
+        //             const filter = { email: user.email }
+        //             const updateDoc = {
+        //                 $set: {
+        //                     role: 'admin'
+        //                 }
+        //             }
+        //             const result = await usersCollection.updateOne(filter, updateDoc)
+        //             res.send(result)
+        //         }
+        //         else {
+        //             res.send({ status: 401 })
+        //         }
+        //     }
+        //     else {
+        //         res.send({ status: 401 })
+        //     }
+        // })
 
-        /******************************************************* */
-        // Post New Cycle 
-        app.post('/cycle', verifyToken, async (req, res) => {
-            const getSingleCycle = req.body
-            const getDecodeEmail = req.decodedUserMail;
-            if (getDecodeEmail) {
-                const findUser = { email: getDecodeEmail }
-                const getUser = await usersCollection.findOne(findUser);
-                if (getUser?.role === 'admin') {
-                    const result = await cyclesCollection.insertOne(getSingleCycle);
-                    res.send(result);
-                }
-                else {
-                    res.send({ status: 401 })
-                }
-            }
-            else {
-                res.send({ status: 401 })
-            }
-        })
+        // /******************************************************* */
+        // // Post New Cycle 
+        // app.post('/cycle', verifyToken, async (req, res) => {
+        //     const getSingleCycle = req.body
+        //     const getDecodeEmail = req.decodedUserMail;
+        //     if (getDecodeEmail) {
+        //         const findUser = { email: getDecodeEmail }
+        //         const getUser = await usersCollection.findOne(findUser);
+        //         if (getUser?.role === 'admin') {
+        //             const result = await cyclesCollection.insertOne(getSingleCycle);
+        //             res.send(result);
+        //         }
+        //         else {
+        //             res.send({ status: 401 })
+        //         }
+        //     }
+        //     else {
+        //         res.send({ status: 401 })
+        //     }
+        // })
 
-        // Update Cycle 
-        app.put('/cycle', verifyToken, async (req, res) => {
-            const getSingleCycle = req.body
-            const getDecodeEmail = req.decodedUserMail;
-            if (getDecodeEmail) {
-                const findUser = { email: getDecodeEmail }
-                const getUser = await usersCollection.findOne(findUser);
-                if (getUser?.role === 'admin') {
-                    const filter = { _id: ObjectId(getSingleCycle._id) }
-                    const updateDoc = {
-                        $set: {
-                            model: getSingleCycle.model,
-                            price: getSingleCycle.price,
-                            frameSize: getSingleCycle.frameSize,
-                            weight: getSingleCycle.weight,
-                            material: getSingleCycle.material,
-                            preferAge: getSingleCycle.preferAge,
-                            gender: getSingleCycle.gender,
-                            category: getSingleCycle.category,
-                            picture: getSingleCycle.picture,
-                            overview: getSingleCycle.overview
-                        }
-                    }
-                    const result = await cyclesCollection.updateOne(filter, updateDoc)
-                    res.send(result)
-                }
-                else {
-                    res.send({ status: 401 })
-                }
-            }
-            else {
-                res.send({ status: 401 })
-            }
-        })
+        // // Update Cycle 
+        // app.put('/cycle', verifyToken, async (req, res) => {
+        //     const getSingleCycle = req.body
+        //     const getDecodeEmail = req.decodedUserMail;
+        //     if (getDecodeEmail) {
+        //         const findUser = { email: getDecodeEmail }
+        //         const getUser = await usersCollection.findOne(findUser);
+        //         if (getUser?.role === 'admin') {
+        //             const filter = { _id: ObjectId(getSingleCycle._id) }
+        //             const updateDoc = {
+        //                 $set: {
+        //                     model: getSingleCycle.model,
+        //                     price: getSingleCycle.price,
+        //                     frameSize: getSingleCycle.frameSize,
+        //                     weight: getSingleCycle.weight,
+        //                     material: getSingleCycle.material,
+        //                     preferAge: getSingleCycle.preferAge,
+        //                     gender: getSingleCycle.gender,
+        //                     category: getSingleCycle.category,
+        //                     picture: getSingleCycle.picture,
+        //                     overview: getSingleCycle.overview
+        //                 }
+        //             }
+        //             const result = await cyclesCollection.updateOne(filter, updateDoc)
+        //             res.send(result)
+        //         }
+        //         else {
+        //             res.send({ status: 401 })
+        //         }
+        //     }
+        //     else {
+        //         res.send({ status: 401 })
+        //     }
+        // })
 
         // Get All Cycles for Admin 
         app.get('/cycles', async (req, res) => {
