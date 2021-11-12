@@ -137,6 +137,7 @@ const herocycle = async () => {
                             preferAge: getSingleCycle.preferAge,
                             gender: getSingleCycle.gender,
                             category: getSingleCycle.category,
+                            status: getSingleCycle.status,
                             picture: getSingleCycle.picture,
                             overview: getSingleCycle.overview
                         }
@@ -153,9 +154,16 @@ const herocycle = async () => {
             }
         })
 
-        // Get All Cycles for Admin 
+        // Get All Cycles 
+        // Limit retrived if Bycycles Component call from homepage
         app.get('/cycles', async (req, res) => {
-            const result = await cyclesCollection.find({}).toArray();
+            const queryLimit = Number(req.query.limit);
+            let result;
+            if (queryLimit) {
+                result = await cyclesCollection.find({}).limit(queryLimit).toArray();
+            }
+            else
+                result = await cyclesCollection.find({}).toArray();
             res.send(result);
         })
 
