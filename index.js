@@ -47,6 +47,7 @@ const herocycle = async () => {
             res.send('Welcome Hero Cycle App');
         })
 
+        /********************************* USERS***************************************** */
         // Add New User
         app.post('/users', async (req, res) => {
             const userInfo = req.body
@@ -100,7 +101,7 @@ const herocycle = async () => {
             }
         })
 
-        /******************************************************* */
+        /***************************** Cycles************************** */
         // Post New Cycle 
         app.post('/cycle', verifyToken, async (req, res) => {
             const getSingleCycle = req.body
@@ -183,6 +184,14 @@ const herocycle = async () => {
             }
         })
 
+        // Delete Single Cycle 
+        app.delete('/cycles/:cycleID', async (req, res) => {
+            const getCycleID = req.params.cycleID
+            const filter = { _id: ObjectId(getCycleID) }
+            const result = await cyclesCollection.deleteOne(filter)
+            res.send(result)
+        })
+        /*********************************** Order *************************************** */
         // Add New Order 
         app.post('/order', verifyToken, async (req, res) => {
             const getOrder = req.body
@@ -295,37 +304,6 @@ const herocycle = async () => {
             }
         })
 
-        // // Cancel Single Order 
-        // app.put('/order/:orderID', verifyToken, async (req, res) => {
-        //     const getOrderID = req.params.orderID
-        //     const orderStatus = req.query.action
-        //     console.log(getOrderID, orderStatus)
-        //     const getDecodeEmail = req.decodedUserMail;
-        //     console.log('getDecodeEmail', getDecodeEmail)
-        //     if (getDecodeEmail) {
-        //         const findUser = { email: getDecodeEmail }
-        //         const getUser = await usersCollection.findOne(findUser);
-        //         console.log(getUser?.role)
-        //         if (getUser?.role) {
-        //             const filter = { _id: ObjectId(getOrderID), email: getDecodeEmail }
-        //             const updateDoc = {
-        //                 $set: {
-        //                     orderStatus
-        //                 }
-        //             }
-        //             const result = await ordersCollection.updateOne(filter, updateDoc)
-        //             console.log(result)
-        //             res.send(result)
-        //         }
-        //         else {
-        //             res.send({ status: 401 })
-        //         }
-        //     }
-        //     else {
-        //         res.send({ status: 401 })
-        //     }
-        // })
-
         // Cancel Single Order 
         app.put('/order/:orderID', verifyToken, async (req, res) => {
             const getOrderID = req.params.orderID
@@ -354,6 +332,7 @@ const herocycle = async () => {
             res.send(result)
         })
 
+        /*********************************Review***************************************** */
         // Add Review
         app.post('/reviews', verifyToken, async (req, res) => {
             console.log('Review body', req.body)
