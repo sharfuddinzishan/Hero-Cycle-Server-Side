@@ -40,6 +40,7 @@ const herocycle = async () => {
         const usersCollection = client.db('herocycle').collection('users');
         const cyclesCollection = client.db('herocycle').collection('cycles');
         const ordersCollection = client.db('herocycle').collection('orders');
+        const reviewsCollection = client.db('herocycle').collection('reviews');
 
         // Check Server is Ok or Not
         app.get('/', (req, res) => {
@@ -81,6 +82,7 @@ const herocycle = async () => {
                 const getUser = await usersCollection.findOne(findUser);
                 if (getUser?.role === 'admin') {
                     const filter = { email: user.email }
+                    const options = { upsert: true };
                     const updateDoc = {
                         $set: {
                             role: 'admin'
@@ -205,14 +207,25 @@ const herocycle = async () => {
         // Get All Orders By Email
         app.get('/user/orders', async (req, res) => {
             const email = req.query.email
-            const query = { email }
-            const user = await usersCollection.findOne(query);
-            if (user?.role) {
-                const result = await ordersCollection.find(query).toArray();
-                res.send(result)
+            let query = { email }
+            let result
+            console.log('Boolean ', email !== 'undefined', typeof email)
+            if (email) {
+                const user = await usersCollection.findOne(query);
+                if (user?.role) {
+                    result = await ordersCollection.find(query).toArray();
+                    res.send(result)
+                }
+                else {
+                    res.send({ status: 401 })
+                }
             }
             else {
-                res.send({ status: 401 })
+                result = await ordersCollection.find({}).toArray();
+                if (result.length)
+                    res.send(result)
+                else
+                    res.send({ status: 401 })
             }
         })
 
@@ -224,49 +237,84 @@ const herocycle = async () => {
             res.send(order);
         })
 
-        // Update Single Order 
-        app.put('/order', verifyToken, async (req, res) => {
-            const getSingleOrder = req.body
-            console.log(getSingleOrder)
-            const filter = { _id: ObjectId(getSingleOrder._id) }
-            const updateDoc = {
-                $set: {
-                    orderBy: getSingleOrder.orderBy,
-                    shippingAddress: getSingleOrder.shippingAddress,
-                    orderNotes: getSingleOrder.orderNotes,
-                    email: getSingleOrder.email,
-                    price: getSingleOrder.price,
-                    model: getSingleOrder.model,
-                    cycleID: getSingleOrder.cycleID,
-                    orderStatus: getSingleOrder.orderStatus,
-                }
-            }
-            const result = await ordersCollection.updateOne(filter, updateDoc)
-            res.send(result)
-        })
         // // Update Single Order 
         // app.put('/order', verifyToken, async (req, res) => {
         //     const getSingleOrder = req.body
-        //     console.log(getSingleOrder.orderStatus)
+        //     const getDecodeEmail = req?.decodedUserMail;
+        //     console.log('Now Admin Update ', getDecodeEmail)
+        //     const filter = { _id: ObjectId(getSingleOrder._id) }
+        //     const updateDoc = {
+        //         $set: {
+        //             orderBy: getSingleOrder.orderBy,
+        //             shippingAddress: getSingleOrder.shippingAddress,
+        //             orderNotes: getSingleOrder.orderNotes,
+        //             email: getSingleOrder.email,
+        //             price: getSingleOrder.price,
+        //             model: getSingleOrder.model,
+        //             cycleID: getSingleOrder.cycleID,
+        //             orderStatus: getSingleOrder.orderStatus,
+        //         }
+        //     }
+        //     const result = await ordersCollection.updateOne(filter, updateDoc)
+        //     res.send(result)
+        // })
+
+        // Update Single Order
+        app.put('/order', verifyToken, async (req, res) => {
+            const getSingleOrder = req.body
+            const getDecodeEmail = req.decodedUserMail;
+            if (getDecodeEmail) {
+                const findUser = { email: getDecodeEmail }
+                const getUser = await usersCollection.findOne(findUser);
+                if (getUser.role) {
+                    console.log('inside', getDecodeEmail)
+                    const filter = { _id: ObjectId(getSingleOrder._id) }
+                    // const filter = { _id: ObjectId(getSingleOrder._id), email: getDecodeEmail }
+                    console.log(filter)
+                    const updateDoc = {
+                        $set: {
+                            orderBy: getSingleOrder.orderBy,
+                            shippingAddress: getSingleOrder.shippingAddress,
+                            orderNotes: getSingleOrder.orderNotes,
+                            email: getSingleOrder.email,
+                            price: getSingleOrder.price,
+                            model: getSingleOrder.model,
+                            cycleID: getSingleOrder.cycleID,
+                            orderStatus: getSingleOrder.orderStatus,
+                        }
+                    }
+                    const result = await ordersCollection.updateOne(filter, updateDoc)
+                    res.send(result)
+                }
+                else {
+                    res.send({ status: 401 })
+                }
+            }
+            else {
+                res.send({ status: 401 })
+            }
+        })
+
+        // // Cancel Single Order 
+        // app.put('/order/:orderID', verifyToken, async (req, res) => {
+        //     const getOrderID = req.params.orderID
+        //     const orderStatus = req.query.action
+        //     console.log(getOrderID, orderStatus)
         //     const getDecodeEmail = req.decodedUserMail;
+        //     console.log('getDecodeEmail', getDecodeEmail)
         //     if (getDecodeEmail) {
         //         const findUser = { email: getDecodeEmail }
         //         const getUser = await usersCollection.findOne(findUser);
+        //         console.log(getUser?.role)
         //         if (getUser?.role) {
-        //             const filter = { _id: ObjectId(getSingleOrder._id), email: getDecodeEmail }
+        //             const filter = { _id: ObjectId(getOrderID), email: getDecodeEmail }
         //             const updateDoc = {
         //                 $set: {
-        //                     orderBy: getSingleOrder.orderBy,
-        //                     shippingAddress: getSingleOrder.shippingAddress,
-        //                     orderNotes: getSingleOrder.orderNotes,
-        //                     email: getSingleOrder.email,
-        //                     price: getSingleOrder.price,
-        //                     model: getSingleOrder.model,
-        //                     cycleID: getSingleOrder.cycleID,
-        //                     orderStatus: getSingleOrder.orderStatus,
+        //                     orderStatus
         //                 }
         //             }
         //             const result = await ordersCollection.updateOne(filter, updateDoc)
+        //             console.log(result)
         //             res.send(result)
         //         }
         //         else {
@@ -277,6 +325,85 @@ const herocycle = async () => {
         //         res.send({ status: 401 })
         //     }
         // })
+
+        // Cancel Single Order 
+        app.put('/order/:orderID', verifyToken, async (req, res) => {
+            const getOrderID = req.params.orderID
+            const orderStatus = req.query.action
+            console.log(getOrderID, orderStatus)
+            const getDecodeEmail = req.decodedUserMail;
+            console.log('getDecodeEmail', getDecodeEmail)
+            const filter = { _id: ObjectId(getOrderID) }
+            const updateDoc = {
+                $set: {
+                    orderStatus
+                }
+            }
+            const result = await ordersCollection.updateOne(filter, updateDoc)
+            console.log(result)
+            res.send(result)
+        })
+
+        // Delete Single Order 
+        app.delete('/order/:orderID', verifyToken, async (req, res) => {
+            const getOrderID = req.params.orderID
+            const getDecodeEmail = req.decodedUserMail;
+            const filter = { _id: ObjectId(getOrderID) }
+            const result = await ordersCollection.deleteOne(filter)
+            console.log(result)
+            res.send(result)
+        })
+
+        // Add Review
+        app.post('/reviews', verifyToken, async (req, res) => {
+            console.log('Review body', req.body)
+            const getDecodeEmail = req.decodedUserMail;
+            const reviewBody = req.body
+            if (getDecodeEmail) {
+                const findUser = { email: getDecodeEmail }
+                const getUser = await usersCollection.findOne(findUser);
+                if (getUser.role === 'user') {
+                    const result = await reviewsCollection.insertOne(reviewBody);
+                    res.send(result);
+                }
+                else {
+                    res.send({ insertedId: 0 })
+                }
+            }
+            else {
+                res.send({ insertedId: 0 })
+            }
+        })
+
+        // Get All Reviews
+        app.get('/reviews', async (req, res) => {
+            const order = await reviewsCollection.find({}).toArray();
+            res.send(order);
+        })
+
+        // Delete Review
+        app.delete('/reviews/:reviewID', verifyToken, async (req, res) => {
+            const getDecodeEmail = req.decodedUserMail;
+            const reviewID = req.params.reviewID
+            console.log(getDecodeEmail, reviewID)
+            if (getDecodeEmail) {
+                console.log('inside review')
+                const filter = { _id: ObjectId(reviewID) }
+                const findUser = { email: getDecodeEmail }
+                const getUser = await usersCollection.findOne(findUser);
+                if (getUser.role === 'user') {
+                    console.log('Start review action')
+                    const result = await reviewsCollection.deleteOne(filter)
+                    res.send(result)
+                }
+                else {
+                    res.send({ deletedCount: 0 })
+                }
+            }
+            else {
+                res.send({ deletedCount: 0 })
+            }
+        })
 
     }
 
